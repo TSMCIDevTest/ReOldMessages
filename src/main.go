@@ -2,37 +2,38 @@ package main
 
 import (
     "fmt"
-    "instant-messenger-revival/src/libpurple"
-    "instant-messenger-revival/src/nina"
+    "instantmessengerrevival/src/libpurple"
+    "instantmessengerrevival/src/nina"
+    "log"
 )
 
 func main() {
     // Initialize libpurple
-    lp := libpurple.LibPurple{}
-    err := lp.Init()
+    libPurple := libpurple.LibPurple{}
+    err := libPurple.Init()
     if err != nil {
         fmt.Println("Error initializing libpurple:", err)
         return
     }
 
     // Connect to Nina chat API
-    ninaAPI := nina.NinaAPI{}
-    err = ninaAPI.Authenticate()
+    ninaChatAPI := nina.NinaAPI{}
+    err = ninaChatAPI.Authenticate()
     if err != nil {
         fmt.Println("Error authenticating with Nina API:", err)
         return
     }
 
-    fmt.Println("Instant Messenger Revival is running...")
-    
+    log.Println("Instant Messenger Revival is running...")
+    // Example of connecting to libpurple and sending a message
     // Example of sending a message
-    err = lp.Connect()
+    err = libPurple.Connect()
     if err != nil {
         fmt.Println("Error connecting to libpurple:", err)
         return
     }
 
-    err = lp.SendMessage("Hello from Instant Messenger Revival!")
+    err = libPurple.SendMessage("Hello from Instant Messenger Revival!")
     if err != nil {
         fmt.Println("Error sending message:", err)
     }

@@ -1,19 +1,20 @@
 package types
 
+import "time"
+
 type Message struct {
     ID      string `json:"id"`
     Content string `json:"content"`
     Sender  User   `json:"sender"`
-    Time    string `json:"time"`
+    Time    time.Time `json:"time"`
 }
 
 type User struct {
     ID   string `json:"id"`
     Name string `json:"name"`
 }
-
-type ChatSession struct {
-    ID      string   `json:"id"`
-    Users    []User   `json:"users"`
+type Chat struct {
+    ID       string    `json:"id"`
+    Users    []User    `json:"users"`
     Messages []Message `json:"messages"`
 }

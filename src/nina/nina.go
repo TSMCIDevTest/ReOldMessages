@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"time"
+	"fmt"
 )
 
 type NinaAPI struct {
@@ -24,13 +26,17 @@ func NewNinaAPI(baseURL, apiKey string) *NinaAPI {
 	return &NinaAPI{
 		BaseURL:    baseURL,
 		APIKey:     apiKey,
-		HTTPClient: &http.Client{},
+		HTTPClient: &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
+// Authenticate sends an API key to the authentication endpoint and returns a token if successful.
 func (n *NinaAPI) Authenticate() (string, error) {
 	reqBody := map[string]string{"api_key": n.APIKey}
-	body, _ := json.Marshal(reqBody)
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", err
+	}
 
 	resp, err := n.HTTPClient.Post(n.BaseURL+"/auth", "application/json", bytes.NewBuffer(body))
 	if err != nil {
@@ -46,6 +52,7 @@ func (n *NinaAPI) Authenticate() (string, error) {
 	return authResp.Token, nil
 }
 
+// SendMessage sends a message using the provided token and returns an error if the message could not be sent.
 func (n *NinaAPI) SendMessage(token, message string) error {
 	reqBody := map[string]string{"message": message}
 	body, _ := json.Marshal(reqBody)
@@ -67,14 +74,14 @@ func (n *NinaAPI) SendMessage(token, message string) error {
 	if err := json.NewDecoder(resp.Body).Decode(&msgResp); err != nil {
 		return err
 	}
-
 	if msgResp.Status != "success" {
-		return fmt.Errorf("failed to send message")
+		return fmt.Errorf("failed to send message: %s", msgResp.Status)
 	}
 
 	return nil
 }
 
+// ReceiveMessages retrieves messages from the server using the provided token.
 func (n *NinaAPI) ReceiveMessages(token string) ([]string, error) {
 	req, err := http.NewRequest("GET", n.BaseURL+"/messages", nil)
 	if err != nil {
@@ -86,7 +93,9 @@ func (n *NinaAPI) ReceiveMessages(token string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to receive messages: %s", resp.Status)
+	}
 
 	var messages []string
 	if err := json.NewDecoder(resp.Body).Decode(&messages); err != nil {
